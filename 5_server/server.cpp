@@ -38,12 +38,6 @@ void matrixFree (double **p, int M) {
     delete []p;
 }
 
-// Thread Arguments Structure
-struct thread_data {
-    double **A, **B, **C;
-    int N, P, l1, l2;
-};
-
 // Matrix Multiplication (Single Thread)
 void matmul (double **A, double **B, double**C, int M, int N, int P) {
     
@@ -57,8 +51,52 @@ void matmul (double **A, double **B, double**C, int M, int N, int P) {
     }
 }
 
+// Display Matrix
+void printMatrix (double **p, int M, int N) {
+
+    int m, n;
+
+    for (m = 0; m < M; m++) {
+        for (n = 0; n < N; n++) {
+            std::cout << p[m][n] << " ";
+        }
+    std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 void * hconnect (void * acc_s) {
 	int accept_socket = *((int *)acc_s);
+
+	// Receiving Matrices dimensions
+	int N, P, L;
+
+	read(accept_socket, &N, sizeof(int));
+	read(accept_socket, &P, sizeof(int));
+	read(accept_socket, &L, sizeof(int));
+
+	// Allocating matrices on server
+    double** A = matrixAlloc(L, N);
+	double** B = matrixAlloc(N, P);
+	double** C = matrixAlloc(L, P);
+
+	// Receiving A
+	for (int j = 0; j < L; j++) {
+		read(accept_socket, A[j], N*sizeof(double));
+	}
+
+	// Receiving B (complete)
+	for (int i = 0; i < N; i++) {
+		read(accept_socket, B[i], P*sizeof(double));
+	}
+
+	// C = A @ B
+	matmul(A, B, C, L, N, P);
+
+	// Sending C
+	for (int j = 0; j < L; j++) {
+		write(accept_socket, C[j], P*sizeof(double));
+	}
 
 	close(accept_socket);
 	free(acc_s);
@@ -75,7 +113,7 @@ int main (int argc, char ** argv) {
 	sockaddr_in service;
 	service.sin_family = AF_INET;
 	service.sin_port = htons(MY_PORT);
-	inet_aton("127.0.0.1", &service.sin_addr);
+	inet_aton("0.0.0.0", &service.sin_addr);
 
 	server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // Step 1: creating the server socket (returns 0 if good)
 															   // AF_INET = IPv4 (address family)
