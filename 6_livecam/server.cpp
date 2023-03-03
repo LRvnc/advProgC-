@@ -12,19 +12,16 @@ void* getImg (void* acc_s) {
     time_t mtime;
     
     char filename[20] = "webcam_server.jpg";
-    int rt, flag;
+    int flag;
     
     while (true) {
 
         read(accept_socket, &flag, sizeof(int));
 
         if (flag == 0) {
-            rt = readStat(accept_socket, filesize, mtime);
-            std::cout << "readStat rt: " << rt << std::endl;
-            rt = readFile(accept_socket, filename, filesize);
-            std::cout << "readFile rt: " << rt << std::endl;
+            readStat(accept_socket, filesize, mtime);
+            readFile(accept_socket, filename, filesize);
         }
-
     }
 
     return NULL;

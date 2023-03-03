@@ -13,14 +13,15 @@ int main (int argc, char* argv[]) {
         return -1;
     }
 
-    int rt, flag = -1;
+    int flag = -1;
     time_t start = time(NULL);
     time_t now = time(NULL);
 
     while (true) {
 
-        while ((now - start < 3)) {
+        while ((now - start < 1)) {
             flag = -1;
+            write(client_socket, &flag, sizeof(int));
             now = time(NULL);
         }
 
@@ -39,13 +40,11 @@ int main (int argc, char* argv[]) {
         }
 
         // Send image stats
-        rt = sendStat(client_socket, st);
-        std::cout << "sendStat rt: " << rt << std::endl;
+        sendStat(client_socket, st);
 
         // Send image
         char filename[20] = "webcam.jpg";
-        rt = sendFile(client_socket, filename, st.st_size);
-        std::cout << "sendFile rt: " << rt << std::endl;
+        sendFile(client_socket, filename, st.st_size);
 
         // Refresh
         start = time(NULL);

@@ -147,7 +147,6 @@ int sendStat (int client_socket, struct stat st) {
 
 	// Send file size
 	write(client_socket, &(st.st_size), sizeof(off_t));
-	std::cout << "st_size: " << st.st_size << std::endl;
 
 	// Send last modification time
 	time_t t = st.st_mtime;
@@ -162,7 +161,6 @@ int readStat (int accept_socket, off_t &filesize, time_t &mtime) {
 	// Read file size
 	off_t fz;
 	read(accept_socket, &fz, sizeof(off_t));
-	std::cout << "fz: " << fz << std::endl;
 	filesize = fz;
 
 	// Read last modification time
