@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
 
 int main (int argc, char* argv[]) {
 
@@ -12,6 +13,11 @@ int main (int argc, char* argv[]) {
         std::cerr << "clientConnect() error" << std::endl;
         return -1;
     }
+
+    // Send client hostname
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, HOST_NAME_MAX);
+    write(client_socket, &(hostname), HOST_NAME_MAX);
 
     int flag = -1;
     time_t start = time(NULL);

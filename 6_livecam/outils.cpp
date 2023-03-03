@@ -6,6 +6,7 @@
 #include <iostream>
 #include <time.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 int serverSetup (short port, void* (func)(void* acc_s)) {
 

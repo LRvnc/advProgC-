@@ -4,14 +4,19 @@
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <limits.h>
+#include <bits/stdc++.h>
 
 void* getImg (void* acc_s) {
 
     int accept_socket = *((int *)acc_s);
-    off_t filesize = 0;
+    off_t filesize;
     time_t mtime;
+
+    char hn[HOST_NAME_MAX] = "none", img_ext[5] = ".jpg";
+    read(accept_socket, &(hn), HOST_NAME_MAX);
+    std::strcat(hn, img_ext);
     
-    char filename[20] = "webcam_server.jpg";
     int flag;
     
     while (true) {
@@ -20,7 +25,7 @@ void* getImg (void* acc_s) {
 
         if (flag == 0) {
             readStat(accept_socket, filesize, mtime);
-            readFile(accept_socket, filename, filesize);
+            readFile(accept_socket, hn, filesize);
         }
     }
 
