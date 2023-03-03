@@ -143,28 +143,34 @@ void printDate(time_t t) {
 
 }
 
-void sendStat (int client_socket, struct stat st) {
+int sendStat (int client_socket, struct stat st) {
 
 	// Send file size
 	write(client_socket, &(st.st_size), sizeof(off_t));
+	std::cout << "st_size: " << st.st_size << std::endl;
 
 	// Send last modification time
 	time_t t = st.st_mtime;
 	write(client_socket, &t, sizeof(time_t));
 
+	return 0;
+
 }
 
-void readStat (int accept_socket, off_t &filesize, time_t &mtime) {
+int readStat (int accept_socket, off_t &filesize, time_t &mtime) {
 
 	// Read file size
 	off_t fz;
 	read(accept_socket, &fz, sizeof(off_t));
+	std::cout << "fz: " << fz << std::endl;
 	filesize = fz;
 
 	// Read last modification time
-	time_t t;
+	time_t t = 0;
 	read(accept_socket, &t, sizeof(time_t));
 	mtime = t;
+
+	return 0;
 
 }
 
@@ -179,7 +185,7 @@ int sendFile (int client_socket, char* filename, off_t filesize) {
 
 		if (filesize == fsw) {
 			write(client_socket, img, filesize);
-			//delete img;
+			delete []img;
 			fclose(fp);
 			return 0;
 		}
@@ -207,7 +213,7 @@ int readFile (int accept_socket, char* filename, off_t filesize) {
 
 		off_t fsw = fwrite(img, 1, filesize, fp);
 		if (filesize == fsw) {
-			//delete img;
+			delete []img;
 			fclose(fp);
 			return 0;
 		}
