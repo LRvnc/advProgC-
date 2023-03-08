@@ -1,4 +1,7 @@
 #include "base.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -6,7 +9,6 @@
 #include <iostream>
 #include <time.h>
 #include <sys/stat.h>
-#include <limits.h>
 
 int serverSetup (short port, void* (func)(void* acc_s)) {
 
@@ -73,7 +75,9 @@ int serverSetup (short port, void* (func)(void* acc_s)) {
 
 		int* acc_s = new int;
 		*acc_s = accept_socket;
-		pthread_create(&tid, NULL, func, (void*)acc_s);
+		if (pthread_create(&tid, NULL, func, (void*)acc_s) != 0) {
+			std::cerr << "pthread_create() error" << std::endl;
+		}
 
 	}
 
@@ -147,11 +151,15 @@ void printDate(time_t t) {
 int sendStat (int client_socket, struct stat st) {
 
 	// Send file size
-	write(client_socket, &(st.st_size), sizeof(off_t));
+	if (write(client_socket, &(st.st_size), sizeof(off_t)) == -1) {
+		std::cerr << "sendStat write size error" << std::endl;
+	}
 
 	// Send last modification time
 	time_t t = st.st_mtime;
-	write(client_socket, &t, sizeof(time_t));
+	if (write(client_socket, &t, sizeof(time_t)) == -1) {
+		std::cerr << "sendStat write time error" << std::endl;
+	}
 
 	return 0;
 
@@ -161,12 +169,16 @@ int readStat (int accept_socket, off_t &filesize, time_t &mtime) {
 
 	// Read file size
 	off_t fz;
-	read(accept_socket, &fz, sizeof(off_t));
+	if (read(accept_socket, &fz, sizeof(off_t)) == -1) {
+		std::cerr << "readStat read size error" << std::endl;
+	}
 	filesize = fz;
 
 	// Read last modification time
 	time_t t = 0;
-	read(accept_socket, &t, sizeof(time_t));
+	if (read(accept_socket, &t, sizeof(time_t)) == -1) {
+		std::cerr << "readStat read time error" << std::endl;
+	}
 	mtime = t;
 
 	return 0;
@@ -183,7 +195,9 @@ int sendFile (int client_socket, char* filename, off_t filesize) {
 		off_t fsw = fread(img, 1, filesize, fp);
 
 		if (filesize == fsw) {
-			write(client_socket, img, filesize);
+			if (write(client_socket, img, filesize) == -1) {
+				std::cerr << "sendFile write img error" << std::endl;
+			}
 			delete []img;
 			fclose(fp);
 			return 0;
@@ -208,7 +222,9 @@ int readFile (int accept_socket, char* filename, off_t filesize) {
 	if (fp != NULL) {
 		
 		char* img = new char[filesize];
-		read(accept_socket, img, filesize);
+		if (read(accept_socket, img, filesize) == -1) {
+			std::cerr << "readFile read img error" << std::endl;
+		}
 
 		off_t fsw = fwrite(img, 1, filesize, fp);
 		if (filesize == fsw) {

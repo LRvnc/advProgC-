@@ -1,11 +1,9 @@
 #include "base.h"
 #include <iostream>
-#include <stdio.h>
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <limits.h>
-#include <bits/stdc++.h>
+#include "stdc++.h"
 
 void* getImg (void* acc_s) {
 
@@ -14,14 +12,18 @@ void* getImg (void* acc_s) {
     time_t mtime;
 
     char hn[HOST_NAME_MAX] = "none", img_ext[5] = ".jpg";
-    read(accept_socket, &(hn), HOST_NAME_MAX);
+    if (read(accept_socket, &(hn), HOST_NAME_MAX) == -1) {
+        std::cerr << "Read hostname error" << std::endl;
+    }
     std::strcat(hn, img_ext);
     
     int flag;
     
     while (true) {
 
-        read(accept_socket, &flag, sizeof(int));
+        if (read(accept_socket, &flag, sizeof(int)) == -1) {
+            std::cerr << "Read flag error" << std::endl;
+        }
 
         if (flag == 0) {
             readStat(accept_socket, filesize, mtime);

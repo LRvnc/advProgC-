@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <limits.h>
 
 int main (int argc, char* argv[]) {
 
@@ -17,7 +16,9 @@ int main (int argc, char* argv[]) {
     // Send client hostname
     char hostname[HOST_NAME_MAX];
     gethostname(hostname, HOST_NAME_MAX);
-    write(client_socket, &(hostname), HOST_NAME_MAX);
+    if (write(client_socket, &(hostname), HOST_NAME_MAX) == -1) {
+        std::cerr << "Write hostname error" << std::endl;
+    }
 
     int flag = -1;
     time_t start = time(NULL);
@@ -27,15 +28,20 @@ int main (int argc, char* argv[]) {
 
         while ((now - start < 1)) {
             flag = -1;
-            write(client_socket, &flag, sizeof(int));
+            if (write(client_socket, &flag, sizeof(int)) == -1) {
+                std::cerr << "Write flag -1 error" << std::endl;
+            }
             now = time(NULL);
         }
 
         flag = 0;
-        write(client_socket, &flag, sizeof(int));
+        if (write(client_socket, &flag, sizeof(int)) == -1) {
+            std::cerr << "Write flag 0 error" << std::endl;
+        }
 
         // Take pic
-        system("python3 capture_image.py");
+        int rc = system("python3 capture_image.py");
+        std::cout << "system rc: " << rc << std::endl;
 
         // File metadata
         struct stat st;

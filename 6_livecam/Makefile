@@ -3,14 +3,14 @@ SERVER = server.o outils.o
 
 all: client server
 
-client: $(CLIENT)
-	c++ -o client $(CLIENT)
-
 server: $(SERVER)
 	c++ -o server $(SERVER) -lpthread
 
--include $(CLIENT:.o=.d)
+client: $(CLIENT)
+	c++ -o client $(CLIENT)
+
 -include $(SERVER:.o=.d)
+-include $(CLIENT:.o=.d)
 
 %.o: %.cpp
 	c++ -c $*.cpp -o $*.o -Wall -Wshadow -Werror -O

@@ -2,6 +2,7 @@
 #include "sys/types.h"
 
 #define MY_PORT 7777
+#define HOST_NAME_MAX 64
 
 int serverSetup (short port, void* (func)(void* acc_s));
 int clientConnection (short port, int argc, char* argv[]);
