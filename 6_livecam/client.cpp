@@ -2,46 +2,57 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <signal.h>
+
+int client_socket; // Global variable (needed by the ctrl+c process)
+
+// Define the function to be called when ctrl-c (SIGINT) is sent to process
+void signal_callback_handler(int signum) {
+    std::cout << " Client shutdown" << std::endl;
+    int flag = 3;
+    if (write(client_socket, &flag, sizeof(int)) == -1) {
+                std::cerr << "Error writing flag=1" << std::endl;
+    }
+    // Terminate program
+    exit(signum);
+}
 
 int main (int argc, char* argv[]) {
 
+    // ctrl+c event: client disconnection
+    signal(SIGINT, signal_callback_handler);
+
     // Client connection
-    int client_socket = clientConnection(MY_PORT, argc, argv);
+    client_socket = clientConnection(MY_PORT, argc, argv);
 
     if (client_socket == -1) {
-        std::cerr << "clientConnect() error" << std::endl;
+        std::cerr << "Error clientConnect()" << std::endl;
         return -1;
     }
 
-    // Send client hostname
-    char hostname[HOST_NAME_MAX];
-    gethostname(hostname, HOST_NAME_MAX);
-    if (write(client_socket, &(hostname), HOST_NAME_MAX) == -1) {
-        std::cerr << "Write hostname error" << std::endl;
-    }
-
-    int flag = -1;
+    int flag = 1; // flag -> {1: waiting refresh, 2: send image, 3: client disconnection}
     time_t start = time(NULL);
     time_t now = time(NULL);
 
     while (true) {
 
         while ((now - start < 1)) {
-            flag = -1;
+            flag = 1;
             if (write(client_socket, &flag, sizeof(int)) == -1) {
-                std::cerr << "Write flag -1 error" << std::endl;
+                std::cerr << "Error writing flag=1" << std::endl;
             }
             now = time(NULL);
         }
 
-        flag = 0;
+        flag = 2;
         if (write(client_socket, &flag, sizeof(int)) == -1) {
-            std::cerr << "Write flag 0 error" << std::endl;
+            std::cerr << "Error writing flag=0" << std::endl;
         }
 
         // Take pic
-        int rc = system("python3 capture_image.py");
-        std::cout << "system rc: " << rc << std::endl;
+        if (system("python3 capture_image.py") != 0) {
+            std::cerr << "Error capture_image.py" << std::endl;
+        }
 
         // File metadata
         struct stat st;
