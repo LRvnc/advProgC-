@@ -7,11 +7,11 @@ server: $(SERVER)
 	c++ -o server $(SERVER) -lpthread
 
 client: $(CLIENT)
-	c++ -o client $(CLIENT)
+	c++ -o client $(CLIENT) -lpthread
 
 -include $(CLIENT:.o=.d)
 -include $(SERVER:.o=.d)
 
 %.o: %.cpp
-	c++ -c $*.cpp -o $*.o -Wall -Wshadow -Werror -O
+	c++ -c $*.cpp -o $*.o -Wall -Wshadow -O
 	c++ -MM $*.cpp > $*.d
